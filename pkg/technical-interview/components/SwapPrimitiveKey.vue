@@ -2,7 +2,6 @@
 import Vue from 'vue';
 import cloneDeep from 'lodash/cloneDeep';
 import FileSelector from '@shell/components/form/FileSelector';
-import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
 import { Banner } from '@components/Banner';
 
 interface Data {
@@ -15,9 +14,7 @@ interface Data {
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: {
-    FileSelector, TextAreaAutoGrow, Banner
-  },
+  components: { FileSelector, Banner },
 
   layout: 'plain',
 
