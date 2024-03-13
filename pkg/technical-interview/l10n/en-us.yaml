@@ -1,5 +1,28 @@
 interview:
   tabPage:
     title: 'Technical Interview - Tabs'
+    tab-1: 'Tab 1 - Counter'
+    tab-2: 'Tab 2 - Clock'
+    tab-3: 'Tab 3 - Swap Primitive Key'
+    tab-4: 'Tab 4 - Palindrome'
+  clock:
+    time-compare-equal: 'New time is equivalent to current time.'
+    time-compare-before: 'New time is before to current time.'
+    time-compare-after: 'New time is after to current time.'
+  counter:
+    counter: 'Counter'
+    increment: 'Increment'
+  palindrome:
+    input-tip: Please input phrase list in JSON format
+    not-valid: Input is not valid
+    not-array: Input is not array
+    result: Result
+  swap-primitive-key:
+    not-valid: Input is not valid
+    not-object: Input is not object
+    upload-tip: Please Upload the JSON file
+    original-context: Original context
+    swapped-context: Swapped context
+    swap-btn-text: Swap Primitive Key
 product:
   technical-interview: 'Technical Interview'

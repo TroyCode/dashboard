@@ -1,23 +1,39 @@
 <script lang="ts">
 import Vue from 'vue';
-import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
+import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow.vue';
+import { Banner } from '@components/Banner';
+
 interface Data {
+  inputText: string
+  resultText: string
+  isValidJson: boolean
+  isArray: boolean
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: { TextAreaAutoGrow },
+  components: { TextAreaAutoGrow, Banner },
 
   layout: 'plain',
 
   data() {
-    return { inputText: '', result: [] };
+    return {
+      inputText:     '',
+      resultText:    '',
+      isValidJson:   true,
+      isArray:       true,
+      examplePhrase: '["Deed", "nope", "rarar", "le vel", "Short!"]'
+    };
   },
 
   computed: {},
 
   methods: {
-    isPalindrome(phrase) {
+    initStatus() {
+      this.isValidJson = true;
+      this.isArray = true;
+    },
+    isPalindrome(phrase: string) {
       const cleanedPhrase = phrase.replace(/\s/g, '').toLowerCase();
       const length = cleanedPhrase.length;
 
@@ -29,16 +45,26 @@ export default Vue.extend<Data, any, any, any>({
 
       return true;
     },
-    onInput(e) {
-      this.inputText = e;
-      this.$refs['transferred-text-area'].$refs.ta.value = '';
+    onInput() {
+      this.resultText = '';
     },
     check() {
-      const arr = JSON.parse(this.inputText);
+      let arr = [];
+
+      this.initStatus();
+
+      try {
+        arr = JSON.parse(this.inputText);
+      } catch (e) {
+        this.isValidJson = false;
+      }
 
       if (Array.isArray(arr)) {
-        this.result = arr.map(phrase => this.isPalindrome(phrase));
-        this.$refs['transferred-text-area'].$refs.ta.value = this.result;
+        const result = arr.map(phrase => this.isPalindrome(phrase));
+
+        this.resultText = `${ result.toString() }`;
+      } else {
+        this.isArray = false;
       }
     }
   }
@@ -48,12 +74,25 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    <p>Please input phrase list</p>
+    <p>{{ t('interview.palindrome.input-tip') }}</p>
     <TextAreaAutoGrow
+      v-model="inputText"
       class="mb-10"
-      placeholder="['Deed', 'nope', 'rarar', 'le vel', 'Short!']"
+      :placeholder="examplePhrase"
       :min-height="120"
       @input="onInput"
+    />
+    <Banner
+      v-if="!isValidJson"
+      color="error"
+      label-key="interview.palindrome.not-valid"
+      class="mt-0"
+    />
+    <Banner
+      v-else-if="!isArray"
+      color="error"
+      label-key="interview.palindrome.not-array"
+      class="mt-0"
     />
     <button
       class="btn role-tertiary"
@@ -63,11 +102,9 @@ export default Vue.extend<Data, any, any, any>({
       Check
     </button>
     <hr>
-    <p>Result</p>
-    <TextAreaAutoGrow
-      ref="transferred-text-area"
-      :disabled="true"
-      :min-height="60"
+    <p>{{ t('interview.palindrome.result') }}</p>
+    <pre
+      v-text="resultText"
     />
   </div>
 </template>
@@ -76,5 +113,9 @@ export default Vue.extend<Data, any, any, any>({
 p {
   line-height: 1.25;
   margin-bottom: 10px;
+}
+
+pre {
+  min-height: 40px;
 }
 </style>

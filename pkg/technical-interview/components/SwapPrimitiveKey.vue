@@ -1,55 +1,78 @@
 <script lang="ts">
 import Vue from 'vue';
+import cloneDeep from 'lodash/cloneDeep';
 import FileSelector from '@shell/components/form/FileSelector';
 import TextAreaAutoGrow from '@/pkg/rancher-components/src/components/Form/TextArea/TextAreaAutoGrow';
+import { Banner } from '@components/Banner';
+
 interface Data {
+  originalJson: Object
+  transferredContext: Object
+  isValid: boolean
+  isObject: boolean
+  enableSwapBtn: boolean
 }
 
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
-  components: { FileSelector, TextAreaAutoGrow },
+  components: {
+    FileSelector, TextAreaAutoGrow, Banner
+  },
 
   layout: 'plain',
 
   data() {
-    return { originalJsonText: '', transferredContext: {} };
+    return {
+      originalJson:       {},
+      transferredContext: {},
+      isValid:            true,
+      isObject:           true,
+      enableSwapBtn:      false
+    };
   },
 
   computed: {},
 
-  watch: {
-    transferredContext(newVal, prevVal) {
-      const text = JSON.stringify(this.transferredContext);
-
-      this.$refs['transferred-text-area'].$refs.ta.value = text;
-    }
-  },
+  watch: {},
 
   methods: {
-    onFileSelected(value) {
-      this.originalJsonText = value;
-      this.$refs['original-text-area'].$refs.ta.value = value;
-      this.transferedContext = {};
-      this.$refs['transferred-text-area'].$refs.ta.value = '';
+    initStatus() {
+      this.isValid = true;
+      this.isObject = true;
+      this.enableSwapBtn = false;
+      this.originalJson = {};
+      this.transferredContext = {};
     },
-    isPrimitive(value) {
+    onFileSelected(value: any) {
+      this.initStatus();
+
+      try {
+        this.originalJson = JSON.parse(value);
+        if (!Array.isArray(this.originalJson) && typeof this.originalJson === 'object') {
+          this.enableSwapBtn = true;
+        } else {
+          this.isObject = false;
+        }
+      } catch {
+        this.isValid = false;
+      }
+    },
+    isPrimitive(value: any) {
       return value !== Object(value);
     },
     swap() {
-      const json = JSON.parse(this.originalJsonText);
+      const result = cloneDeep(this.originalJson);
 
-      if (typeof json === 'object' && json !== null) {
-        for (const key in json) {
-          if (Object.hasOwn(json, key) && this.isPrimitive(json[key])) {
-            const temp = json[key];
+      for (const key in result) {
+        if (this.isPrimitive(result[key])) {
+          const temp = result[key];
 
-            delete json[key];
-            json[temp] = key;
-          }
+          delete result[key];
+          result[temp] = key;
         }
       }
 
-      this.transferredContext = json;
+      this.transferredContext = result;
     }
   }
 
@@ -60,32 +83,35 @@ export default Vue.extend<Data, any, any, any>({
   <div>
     <FileSelector
       class="btn btn-sm role-primary mt-5"
-      label="Please Upload the JSON file"
+      :label="t('interview.swap-primitive-key.upload-tip')"
       @selected="onFileSelected"
+    />
+    <Banner
+      v-if="!isValid"
+      color="error"
+      label-key="interview.swap-primitive-key.not-valid"
+    />
+    <Banner
+      v-else-if="!isObject"
+      color="error"
+      label-key="interview.swap-primitive-key.not-object"
     />
 
     <hr>
-    <p>Original context</p>
-    <TextAreaAutoGrow
-      ref="original-text-area"
-      class="mb-10"
-      :disabled="true"
-      :min-height="120"
-    />
+
+    <p>{{ t('interview.swap-primitive-key.original-context') }}</p>
+    <pre>{{ originalJson }}</pre>
     <button
       class="btn role-tertiary"
       type="button"
+      :disabled="!enableSwapBtn"
       @click="swap"
     >
-      Swap Primitive Key
+      {{ t('interview.swap-primitive-key.swap-btn-text') }}
     </button>
     <hr>
-    <p>Swapped context</p>
-    <TextAreaAutoGrow
-      ref="transferred-text-area"
-      :disabled="true"
-      :min-height="120"
-    />
+    <p>{{ t('interview.swap-primitive-key.swapped-context') }}</p>
+    <pre>{{ transferredContext }}</pre>
   </div>
 </template>
 

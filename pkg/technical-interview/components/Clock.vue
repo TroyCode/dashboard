@@ -3,7 +3,17 @@ import Vue from 'vue';
 import day from 'dayjs';
 import UnitInput from '@/shell/components/form/UnitInput.vue';
 
+interface Input {
+  value: number;
+  unit: string;
+}
+
 interface Data {
+  currentDay: day.Dayjs
+  modifiedDay: day.Dayjs
+  inputs: Input[]
+  timeFormat: string
+  updatedTimeInterval: ReturnType<typeof setInterval> | null
 }
 
 // Data, Methods, Computed, Props
@@ -14,63 +24,60 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      time:         day(),
-      modifiedTime: day(),
-      timeFormat:   'YYYY MMM D ddd, HH:mm',
+      currentDay:  day(),
+      modifiedDay: day(),
+      inputs:      [
+        { value: day().hour(), unit: 'hour' },
+        { value: day().minute(), unit: 'minute' },
+        { value: day().second(), unit: 'second' }
+      ],
+      timeFormat:          'YYYY MMM D ddd, HH:mm',
+      updatedTimeInterval: null,
     };
   },
 
   mounted() {
+    this.updatedTimeInterval = setInterval(() => {
+      this.currentDay = day();
+    }, 60 * 1000);
   },
 
   computed: {
     formattedTime() {
-      return this.time.format(this.timeFormat);
+      return this.currentDay.format(this.timeFormat);
     },
     timeDiffText() {
-      const diff = this.modifiedTime.diff(this.time);
-
-      if (diff > 60 * 1000) {
-        return 'New time is after to current time.';
-      } else if (diff < -60 * 1000) {
-        return 'New time is before to current time.';
+      if (this.modifiedDay.isAfter(this.currentDay)) {
+        return this.t('interview.clock.time-compare-after');
+      } else if (this.modifiedDay.isBefore(this.currentDay)) {
+        return this.t('interview.clock.time-compare-before');
       }
 
-      return 'New time is equivalent to current time.';
+      return this.t('interview.clock.time-compare-equal');
     }
   },
 
+  watch: {},
+
   beforeDestroy() {
+    clearInterval(this.updatedTimeInterval);
   },
 
   methods: {
-    updateModifiedTime(unit, e) {
-      if (unit === 'h') {
-        if (e < 24) {
-          this.modifiedTime = this.modifiedTime.hour(e);
-        } else {
-          this.modifiedTime = this.modifiedTime.hour(23);
-        }
-      }
+    validateInput(inputEvent: Input) {
+      const maxValues: { [key: string]: number } = {
+        hour: 23, minute: 59, second: 59
+      };
 
-      if (unit === 'm') {
-        if (e < 60) {
-          this.modifiedTime = this.modifiedTime.minute(e);
-        } else {
-          this.modifiedTime = this.modifiedTime.minute(59);
-        }
-      }
-
-      if (unit === 's') {
-        if (e < 60) {
-          this.modifiedTime = this.modifiedTime.second(e);
-        } else {
-          this.modifiedTime = this.modifiedTime.second(59);
-        }
+      if (inputEvent.value >= maxValues[inputEvent.unit]) {
+        this.modifiedDay = this.modifiedDay.set(inputEvent.unit, maxValues[inputEvent.unit]);
+        this.inputs.find((input: Input) => input.unit === inputEvent.unit)!.value = maxValues[inputEvent.unit];
+      } else {
+        this.modifiedDay = this.modifiedDay.set(inputEvent.unit, inputEvent.value);
       }
     },
     updateCurrentTime() {
-      this.time = this.modifiedTime;
+      this.currentDay = this.modifiedDay;
     }
   }
 
@@ -88,25 +95,15 @@ export default Vue.extend<Data, any, any, any>({
     <div
       class="row setting"
     >
-      <div class="col span-4">
+      <div
+        v-for="(input, index) in inputs"
+        :key="index"
+        class="col span-4"
+      >
         <UnitInput
-          base-unit="hour"
-          :value="modifiedTime.hour()"
-          @input="updateModifiedTime('h', $event)"
-        />
-      </div>
-      <div class="col span-4">
-        <UnitInput
-          base-unit="minute"
-          :value="modifiedTime.minute()"
-          @input="updateModifiedTime('m', $event)"
-        />
-      </div>
-      <div class="col span-4">
-        <UnitInput
-          base-unit="second"
-          :value="modifiedTime.second()"
-          @input="updateModifiedTime('s', $event)"
+          v-model="input.value"
+          :base-unit="input.unit"
+          @input="validateInput({ unit: input.unit, value: $event })"
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import Tab from '@shell/components/Tabbed/Tab';
+import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Counter from '../components/Counter.vue';
 import Clock from '../components/Clock.vue';
@@ -40,25 +40,25 @@ export default Vue.extend<Data, any, any, any>({
     <Tabbed :side-tabs="true">
       <Tab
         name="tab-1-counter"
-        label="Tab 1 - Counter"
+        :label="t('interview.tabPage.tab-1')"
       >
         <Counter />
       </Tab>
       <Tab
         name="tab-2-clock"
-        label="Tab 2 - Clock"
+        :label="t('interview.tabPage.tab-2')"
       >
         <Clock />
       </tab>
       <Tab
         name="tab-3-swap-primitive-key"
-        label="Tab 3 - Swap Primitive Key"
+        :label="t('interview.tabPage.tab-3')"
       >
         <SwapPrimitiveKey />
       </Tab>
       <Tab
         name="tab-4-palindrome"
-        label="Tab 4 - Palindrome"
+        :label="t('interview.tabPage.tab-4')"
       >
         <Palindrome />
       </Tab>

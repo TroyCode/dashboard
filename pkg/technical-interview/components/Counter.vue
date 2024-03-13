@@ -2,6 +2,7 @@
 import Vue from 'vue';
 
 interface Data {
+  counter: number
 }
 
 // Data, Methods, Computed, Props
@@ -27,13 +28,13 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    <p>Counter: {{ counter }}</p>
+    <p>{{ t('interview.counter.counter') }}: {{ counter }}</p>
     <button
       class="btn role-tertiary"
       type="button"
       @click="incrementCounter"
     >
-      Increment
+      {{ t('interview.counter.increment') }}
     </button>
   </div>
 </template>
